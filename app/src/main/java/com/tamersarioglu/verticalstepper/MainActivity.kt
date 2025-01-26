@@ -6,11 +6,17 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
@@ -85,37 +91,26 @@ fun VerticalStepper(
                 onClick = { onStepClick(index) }
             )
 
-            if (index == currentStep) {
-                AnimatedVisibility(
-                    visible = true,
-                    enter = expandVertically(
-                        animationSpec = tween(
-                            durationMillis = 2000,
-                            easing = FastOutSlowInEasing
-                        )
-                    ) + fadeIn(
-                        animationSpec = tween(
-                            durationMillis = 2000,
-                            easing = FastOutSlowInEasing
-                        )
-                    ),
-                    exit = shrinkVertically(
-                        animationSpec = tween(
-                            durationMillis = 2000,
-                            easing = FastOutSlowInEasing
-                        )
-                    ) + fadeOut(
-                        animationSpec = tween(
-                            durationMillis = 2000,
-                            easing = FastOutSlowInEasing
-                        )
+            AnimatedVisibility(
+                visible = index == currentStep,
+                enter = expandVertically(
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                        stiffness = Spring.StiffnessLow
                     )
+                ) + fadeIn(),
+                exit = shrinkVertically() + fadeOut()
+            ) {
+                Box(
+                    modifier = Modifier
+                        .animateContentSize(
+                            animationSpec = spring(
+                                dampingRatio = Spring.DampingRatioMediumBouncy,
+                                stiffness = Spring.StiffnessLow
+                            )
+                        )
                 ) {
-                    Column {
-                        Spacer(modifier = Modifier.height(16.dp))
-                        content(index)
-                        Spacer(modifier = Modifier.height(16.dp))
-                    }
+                    content(index)
                 }
             }
         }
@@ -424,37 +419,48 @@ private fun StepItem(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable(onClick = onClick)
-                .padding(vertical = 8.dp),
+                .padding(vertical = 8.dp)
+                .animateContentSize(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Step number or check icon
             Box(
                 modifier = Modifier
                     .size(32.dp)
                     .background(
-                        color = when {
-                            isActive -> MaterialTheme.colorScheme.primaryContainer
-                            isCompleted -> MaterialTheme.colorScheme.primary
-                            else -> MaterialTheme.colorScheme.surfaceVariant
-                        },
+                        color = animateColorAsState(
+                            targetValue = when {
+                                isActive -> MaterialTheme.colorScheme.primaryContainer
+                                isCompleted -> MaterialTheme.colorScheme.primary
+                                else -> MaterialTheme.colorScheme.surfaceVariant
+                            }
+                        ).value,
                         shape = CircleShape
                     ),
                 contentAlignment = Alignment.Center
             ) {
-                if (isCompleted) {
-                    Icon(
-                        imageVector = Icons.Default.Check,
-                        contentDescription = "Completed",
-                        tint = MaterialTheme.colorScheme.onPrimary
-                    )
-                } else {
-                    Text(
-                        text = stepNumber.toString(),
-                        color = when {
-                            isActive -> MaterialTheme.colorScheme.onPrimaryContainer
-                            else -> MaterialTheme.colorScheme.onSurfaceVariant
-                        }
-                    )
+                AnimatedContent(
+                    targetState = isCompleted,
+                    transitionSpec = {
+                        (scaleIn() + fadeIn()).togetherWith(scaleOut() + fadeOut())
+                    }
+                ) { completed ->
+                    if (completed) {
+                        Icon(
+                            imageVector = Icons.Default.Check,
+                            contentDescription = "Completed",
+                            tint = MaterialTheme.colorScheme.onPrimary
+                        )
+                    } else {
+                        Text(
+                            text = stepNumber.toString(),
+                            color = animateColorAsState(
+                                targetValue = when {
+                                    isActive -> MaterialTheme.colorScheme.onPrimaryContainer
+                                    else -> MaterialTheme.colorScheme.onSurfaceVariant
+                                }
+                            ).value
+                        )
+                    }
                 }
             }
 
@@ -463,10 +469,12 @@ private fun StepItem(
             Text(
                 text = step,
                 style = MaterialTheme.typography.bodyLarge,
-                color = when {
-                    isActive -> MaterialTheme.colorScheme.onSurface
-                    else -> MaterialTheme.colorScheme.onSurfaceVariant
-                }
+                color = animateColorAsState(
+                    targetValue = when {
+                        isActive -> MaterialTheme.colorScheme.onSurface
+                        else -> MaterialTheme.colorScheme.onSurfaceVariant
+                    }
+                ).value
             )
         }
 
@@ -477,10 +485,12 @@ private fun StepItem(
                     .width(2.dp)
                     .height(24.dp)
                     .background(
-                        color = if (isCompleted)
-                            MaterialTheme.colorScheme.primary
-                        else
-                            MaterialTheme.colorScheme.surfaceVariant
+                        color = animateColorAsState(
+                            targetValue = if (isCompleted)
+                                MaterialTheme.colorScheme.primary
+                            else
+                                MaterialTheme.colorScheme.surfaceVariant
+                        ).value
                     )
             )
         }

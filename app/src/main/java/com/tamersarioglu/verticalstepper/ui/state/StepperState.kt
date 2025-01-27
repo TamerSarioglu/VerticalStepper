@@ -3,7 +3,7 @@ package com.tamersarioglu.verticalstepper.ui.state
 import com.tamersarioglu.verticalstepper.Address
 
 data class StepperState(
-    val currentStep: Int = 0,
+    val currentStep: Step = Step.ACCOUNT_DETAILS,
     val email: String = "",
     val password: String = "",
     val firstName: String = "",

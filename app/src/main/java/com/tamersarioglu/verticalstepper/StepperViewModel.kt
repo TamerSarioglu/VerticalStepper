@@ -2,6 +2,7 @@ package com.tamersarioglu.verticalstepper
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.tamersarioglu.verticalstepper.ui.state.Step
 import com.tamersarioglu.verticalstepper.ui.state.StepperEvent
 import com.tamersarioglu.verticalstepper.ui.state.StepperState
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,8 +20,8 @@ class StepperViewModel : ViewModel() {
     val state: StateFlow<StepperState> = _state.asStateFlow()
 
     private fun validateCurrentStep(): Boolean {
-        when (_state.value.currentStep) {
-            0 -> {
+        when (state.value.currentStep) {
+            Step.ACCOUNT_DETAILS -> {
                 val emailValidation = ValidationUtils.validateEmail(_state.value.email)
                 val passwordValidation = ValidationUtils.validatePassword(_state.value.password)
 
@@ -37,7 +38,7 @@ class StepperViewModel : ViewModel() {
                 }
             }
 
-            1 -> {
+            Step.PERSONAL_INFO -> {
                 if (_state.value.firstName.isBlank() || _state.value.lastName.isBlank()) {
                     _state.update {
                         it.copy(
@@ -62,9 +63,8 @@ class StepperViewModel : ViewModel() {
                 }
             }
 
-            2 -> {
-                val billingAddressValidation =
-                    ValidationUtils.validateAddress(_state.value.billingAddress)
+            Step.BILLING_ADDRESS -> {
+                val billingAddressValidation = ValidationUtils.validateAddress(_state.value.billingAddress)
                 if (billingAddressValidation is ValidationResult.Error) {
                     _state.update {
                         it.copy(
@@ -77,10 +77,9 @@ class StepperViewModel : ViewModel() {
                 }
             }
 
-            3 -> {
+            Step.SHIPPING_ADDRESS -> {
                 if (!_state.value.useShippingForBilling) {
-                    val shippingAddressValidation =
-                        ValidationUtils.validateAddress(_state.value.shippingAddress)
+                    val shippingAddressValidation = ValidationUtils.validateAddress(_state.value.shippingAddress)
                     if (shippingAddressValidation is ValidationResult.Error) {
                         _state.update {
                             it.copy(
@@ -92,6 +91,16 @@ class StepperViewModel : ViewModel() {
                         return false
                     }
                 }
+            }
+
+            Step.PAYMENT_DETAILS -> {
+                // Add payment validation logic here if needed
+                return true
+            }
+
+            Step.REVIEW -> {
+                // No validation needed for review step
+                return true
             }
         }
         return true

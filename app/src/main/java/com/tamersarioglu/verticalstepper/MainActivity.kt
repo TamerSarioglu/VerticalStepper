@@ -37,7 +37,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Button
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -50,10 +49,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.tamersarioglu.verticalstepper.ui.components.AccountDetailsStep
-import com.tamersarioglu.verticalstepper.ui.components.AddressStep
 import com.tamersarioglu.verticalstepper.ui.components.LoadingOverlay
-import com.tamersarioglu.verticalstepper.ui.components.PersonalInfoStep
+import com.tamersarioglu.verticalstepper.ui.components.StepContent
+import com.tamersarioglu.verticalstepper.ui.state.Step
 import com.tamersarioglu.verticalstepper.ui.state.StepperEvent
 import com.tamersarioglu.verticalstepper.ui.theme.StepperTheme
 
@@ -186,19 +184,14 @@ fun StepperExample(
 
     LoadingOverlay(isLoading = state.isLoading)
 
-    val steps = listOf(
-        "Account Details",
-        "Personal Information",
-        "Billing Address",
-        "Shipping Address",
-        "Payment Details",
-        "Review & Submit"
-    )
+    val steps = Step.entries.map { it.title }
 
     VerticalStepper(
         steps = steps,
-        currentStep = state.currentStep,
-        onStepClick = { step -> viewModel.onEvent(StepperEvent.UpdateStep(step)) }
+        currentStep = steps.indexOf(state.currentStep.title),
+        onStepClick = { step -> 
+            viewModel.onEvent(StepperEvent.UpdateStep(Step.entries[step]))
+        }
     ) { step ->
         AnimatedContent(
             targetState = step,
@@ -224,140 +217,17 @@ fun StepperExample(
                 )
             }
         ) { targetStep ->
-            when (targetStep) {
-                0 -> AccountDetailsStep(
-                    email = state.email,
-                    password = state.password,
-                    onEmailChange = { viewModel.onEvent(StepperEvent.UpdateEmail(it)) },
-                    onPasswordChange = { viewModel.onEvent(StepperEvent.UpdatePassword(it)) },
-                    onNext = { viewModel.onEvent(StepperEvent.UpdateStep(1)) },
-                    emailError = state.validationState.emailError,
-                    passwordError = state.validationState.passwordError
-                )
-                1 -> PersonalInfoStep(
-                    firstName = state.firstName,
-                    lastName = state.lastName,
-                    phone = state.phone,
-                    onFirstNameChange = { viewModel.onEvent(StepperEvent.UpdateFirstName(it)) },
-                    onLastNameChange = { viewModel.onEvent(StepperEvent.UpdateLastName(it)) },
-                    onPhoneChange = { viewModel.onEvent(StepperEvent.UpdatePhone(it)) },
-                    onBack = { viewModel.onEvent(StepperEvent.UpdateStep(0)) },
-                    onNext = { viewModel.onEvent(StepperEvent.UpdateStep(2)) },
-                    firstNameError = state.validationState.firstNameError,
-                    lastNameError = state.validationState.lastNameError,
-                    phoneError = state.validationState.phoneError
-                )
-                2 -> AddressStep(
-                    title = "Billing Address",
-                    address = state.billingAddress,
-                    onAddressChange = { viewModel.onEvent(StepperEvent.UpdateBillingAddress(it)) },
-                    onBack = { viewModel.onEvent(StepperEvent.UpdateStep(1)) },
-                    onNext = { viewModel.onEvent(StepperEvent.UpdateStep(3)) },
-                    addressError = state.validationState.billingAddressError
-                )
-                3 -> {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 32.dp)
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(bottom = 16.dp)
-                        ) {
-                            Checkbox(
-                                checked = state.useShippingForBilling,
-                                onCheckedChange = { viewModel.onEvent(StepperEvent.UpdateUseShippingForBilling(it)) }
-                            )
-                            Text("Same as billing address")
-                        }
-                        if (!state.useShippingForBilling) {
-                            AddressForm(
-                                address = state.shippingAddress,
-                                onAddressChange = { viewModel.onEvent(StepperEvent.UpdateShippingAddress(it)) }
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(16.dp))
-                        NavigationButtons(
-                            onBack = { viewModel.onEvent(StepperEvent.UpdateStep(2)) },
-                            onNext = { viewModel.onEvent(StepperEvent.UpdateStep(4)) }
-                        )
-                    }
-                }
-                4 -> {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 32.dp)
-                    ) {
-                        // Payment details form
-                        Text(
-                            "Payment Information",
-                            style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.padding(bottom = 16.dp)
-                        )
-                        // Add payment form fields here
-                        NavigationButtons(
-                            onBack = { viewModel.onEvent(StepperEvent.UpdateStep(3)) },
-                            onNext = { viewModel.onEvent(StepperEvent.UpdateStep(5)) }
-                        )
-                    }
-                }
-                5 -> {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 32.dp)
-                    ) {
-                        Text(
-                            "Review Your Information",
-                            style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.padding(bottom = 16.dp)
-                        )
-                        ReviewSection("Account", listOf(
-                            "Email" to state.email
-                        ))
-                        ReviewSection("Personal", listOf(
-                            "Name" to "${state.firstName} ${state.lastName}",
-                            "Phone" to state.phone
-                        ))
-                        ReviewSection("Billing Address", listOf(
-                            "Street" to state.billingAddress.street,
-                            "City" to state.billingAddress.city,
-                            "State" to state.billingAddress.state,
-                            "ZIP" to state.billingAddress.zipCode,
-                            "Country" to state.billingAddress.country
-                        ))
-                        if (!state.useShippingForBilling) {
-                            ReviewSection("Shipping Address", listOf(
-                                "Street" to state.shippingAddress.street,
-                                "City" to state.shippingAddress.city,
-                                "State" to state.shippingAddress.state,
-                                "ZIP" to state.shippingAddress.zipCode,
-                                "Country" to state.shippingAddress.country
-                            ))
-                        }
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            OutlinedButton(onClick = { viewModel.onEvent(StepperEvent.UpdateStep(4)) }) {
-                                Text("Back")
-                            }
-                            Button(onClick = { viewModel.onEvent(StepperEvent.Submit) }) {
-                                Text("Submit")
-                            }
-                        }
-                    }
-                }
-            }
+            StepContent(
+                step = Step.entries[targetStep],
+                state = state,
+                onEvent = viewModel::onEvent
+            )
         }
     }
 }
 
 @Composable
-private fun ReviewSection(
+fun ReviewSection(
     title: String,
     items: List<Pair<String, String>>
 ) {

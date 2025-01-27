@@ -6,8 +6,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.tamersarioglu.verticalstepper.NavigationButtons
-import com.tamersarioglu.verticalstepper.ReviewSection
 import com.tamersarioglu.verticalstepper.ui.state.Step
 import com.tamersarioglu.verticalstepper.ui.state.StepperState
 import com.tamersarioglu.verticalstepper.ui.state.StepperEvent

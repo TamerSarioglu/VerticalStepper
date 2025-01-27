@@ -1,6 +1,6 @@
 package com.tamersarioglu.verticalstepper.ui.state
 
-import com.tamersarioglu.verticalstepper.Address
+import com.tamersarioglu.verticalstepper.data.Address
 
 sealed class StepperEvent {
     data class UpdateStep(val step: Step) : StepperEvent()

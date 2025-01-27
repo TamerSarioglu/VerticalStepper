@@ -1,6 +1,6 @@
 package com.tamersarioglu.verticalstepper.ui.state
 
-import com.tamersarioglu.verticalstepper.Address
+import com.tamersarioglu.verticalstepper.data.Address
 
 data class StepperState(
     val currentStep: Step = Step.ACCOUNT_DETAILS,

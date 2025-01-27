@@ -1,6 +1,6 @@
 package com.tamersarioglu.verticalstepper.utils
 
-import com.tamersarioglu.verticalstepper.Address
+import com.tamersarioglu.verticalstepper.data.Address
 
 sealed class ValidationResult {
     object Success : ValidationResult()
